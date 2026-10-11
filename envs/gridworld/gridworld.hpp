@@ -1,8 +1,5 @@
 #pragma once
 
-#include <iomanip>
-#include <iostream>
-
 #include "uurl/core/types.hpp"
 
 namespace uurl::envs {
@@ -14,23 +11,11 @@ enum class Direction {
     right,
 };
 
-struct GridWorld {
-    ModelGen<int, Direction> model;
-    StateValueMap<int> initialValues;
-    ValueMapObserver<int> printer;
-};
-
 // 4x4 grid where the last cell (bottom-right) aliases state 0,
 // the terminal state. Every step yields reward -1.
-inline GridWorld makeGridWorld4x4() {
-    GridWorld env;
-
-    for (int i = 0; i < 15; ++i) {
-        env.initialValues[i] = 0;
-    }
-
-    env.model = [](const int &state, const Direction &action)
-        -> std::vector<std::pair<Transition<int>, double>> {
+inline ModelGen<int, Direction> gridWorld4x4() {
+    return [](const int &state, const Direction &action)
+               -> std::vector<std::pair<Observation<int>, double>> {
         if (state == 0) {
             return {{{state, 0}, 1}};
         }
@@ -65,19 +50,6 @@ inline GridWorld makeGridWorld4x4() {
                 return {{{state, 0}, 1}};
         }
     };
-
-    env.printer = [](const StateValueMap<int> &svMap) {
-        std::cout << std::fixed << std::setprecision(3);
-        for (int i = 0; i < 16; ++i) {
-            if (i % 4 == 0) {
-                std::cout << '\n';
-            }
-            std::cout << std::setw(8) << svMap.at(i % 15);
-        }
-        std::cout << '\n';
-    };
-
-    return env;
 }
 
 }  // namespace uurl::envs

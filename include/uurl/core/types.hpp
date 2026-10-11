@@ -15,17 +15,17 @@ using PolicyGen = std::function<std::vector<std::pair<Action, double /*prob*/>>(
     const State &)>;
 
 template <typename State>
-struct Transition {
+struct Observation {
     State nextState;
     double reward;
 };
 
 template <typename State, typename Action>
-using Model = std::function<Transition<State>(const State &, const Action &)>;
+using Model = std::function<Observation<State>(const State &, const Action &)>;
 
 template <typename State, typename Action>
 using ModelGen =
-    std::function<std::vector<std::pair<Transition<State>, double /*prob*/>>(
+    std::function<std::vector<std::pair<Observation<State>, double /*prob*/>>(
         const State &, const Action &)>;
 
 template <typename State>

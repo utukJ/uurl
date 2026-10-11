@@ -17,11 +17,11 @@ double computeStateValue(const State &state,
     double expectedValue = 0;
     for (const auto &[action, actionProb] : policyGen(state)) {
         double actionValue = 0;
-        for (const auto &[transition, nextStateProb] :
+        for (const auto &[Observation, nextStateProb] :
              modelGen(state, action)) {
             actionValue += nextStateProb *
-                           (transition.reward +
-                            discount * stateValueMap[transition.nextState]);
+                           (Observation.reward +
+                            discount * stateValueMap[Observation.nextState]);
         }
         expectedValue += actionProb * actionValue;
     }

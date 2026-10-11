@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -12,6 +13,19 @@ void printUsage(const char* program) {
               << " [--threshold <t>] [--discount <d>]\n"
                  "  --threshold  convergence threshold (default 0.1)\n"
                  "  --discount   discount factor in [0, 1] (default 1.0)\n";
+}
+
+// Grid rendering consumes the algorithm's StateValueMap, so it lives here
+// with the caller, not in the env.
+void printValues(const uurl::StateValueMap<int>& svMap) {
+    std::cout << std::fixed << std::setprecision(3);
+    for (int i = 0; i < 16; ++i) {
+        if (i % 4 == 0) {
+            std::cout << '\n';
+        }
+        std::cout << std::setw(8) << svMap.at(i % 15);
+    }
+    std::cout << '\n';
 }
 
 }  // namespace
@@ -44,7 +58,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto env = uurl::envs::makeGridWorld4x4();
+    const auto model = uurl::envs::gridWorld4x4();
+
+    // Value-function initialization is the algorithm caller's job, not the
+    // env's: zero-initialize all 15 non-terminal states.
+    uurl::StateValueMap<int> values;
+    for (int i = 0; i < 15; ++i) {
+        values[i] = 0;
+    }
 
     uurl::PolicyGen<int, uurl::envs::Direction> randomPolicy =
         [](int) -> std::vector<std::pair<uurl::envs::Direction, double>> {
@@ -55,7 +76,8 @@ int main(int argc, char* argv[]) {
     };
 
     auto result = uurl::prediction::evaluatePolicy(
-        randomPolicy, env.initialValues, env.model, config, env.printer);
+        randomPolicy, values, model, config,
+        uurl::ValueMapObserver<int>{printValues});
 
     std::cout << (result.converged ? "Converged" : "Did not converge")
               << " after " << result.iterations << " iterations"
